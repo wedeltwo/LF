@@ -107,17 +107,21 @@ function removeCurrentElement() {
     currentElement = null;
   }
 }
-
+// Drehtür
 function addSwingDoor(options) {
   removeCurrentElement();
 
   const zargeThickness = 0.5; // Thickness reduction on each side (0.5 cm)
   const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 
+ // Determine Zarge thickness based on selected type
+  const zargeThickness = options.zargeType === 'standard' ? 5 : 2; // 5 cm for standard, 2 cm for slim
+  const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+
   // Calculate Zarge dimensions
   const zargeWidth = options.doorwayWidth - zargeThickness * 2; // Width reduced on both sides
   const zargeHeight = options.doorwayHeight - zargeThickness; // Height reduced at the top
-  const zargeDepth = 5; // Fixed depth of Zarge
+  const zargeDepth = zargeThickness; // Zarge depth matches its thickness
 
   // Create top Zarge
   const topZarge = createLoftFrenchElement(zargeWidth, zargeThickness, zargeDepth, {
@@ -232,8 +236,12 @@ gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partitio
   if (value === 'sliding door') addSlidingDoor(options);
   if (value === 'partition') addPartition(options);
 });
-
-gui.add(options, 'zargeType', ['standard', 'slim']);
+gui.add(options, 'zargeType', ['standard', 'slim']).onChange((value) => {
+  options.zargeType = value; // Update the Zarge type
+  if (options.elementType === 'swing door') {
+    addSwingDoor(options); // Recreate the swing door with updated Zarge thickness
+  }
+});
 
 // Initial Wand mit Durchgang erstellen
 updateWallWithDoorway(options);

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOFT French Konfigurator</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.155.0/build/three.module.js",
+                "OrbitControls": "https://unpkg.com/three@0.155.0/examples/jsm/controls/OrbitControls.js",
+                "dat.gui": "https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.module.js"
+            }
+        }
+    </script>
+</head>
+<body>
+    <script type="module">
+// Importiere Three.js und dat.GUI
+import * as THREE from 'three';
+import { GUI } from 'dat.gui';
+import { OrbitControls } from 'OrbitControls';
+
+// Szene, Kamera und Renderer erstellen
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xd3d3d3); // Hintergrund auf hellgrau setzen
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+camera.position.set(0, 500, 1000);
+camera.lookAt(0, 250, 0);
+
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Kamera-Steuerung hinzufügen
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+// Umrechnungsfaktor von Metern zu Zentimetern
+const cm = 100;
+
+// Boden erstellen
+const floorGeometry = new THREE.PlaneGeometry(2000, 2000); // 20m x 20m in cm
+const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Hellbraune Farbe für den Boden
+const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = 0; // Position des Bodens
+scene.add(floor);
+
+// Wand mit Ausschnitt erstellen
+const wallWidth = 2000; // 20m in cm
+const wallHeight = 1000; // 10m in cm
+const wallThickness = 30; // 30cm
+
+// Licht hinzufügen
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+const pointLight = new THREE.PointLight(0xffffff, 1);
+pointLight.position.set(1000, 1000, 1000); // 10m x 10m x 10m in cm
+scene.add(pointLight);
+
+// Funktion zum Aktualisieren der Wand mit einem Ausschnitt
+function updateWallWithDoorway(options) {
+  if (scene.getObjectByName('wall')) {
+    scene.remove(scene.getObjectByName('wall'));
+  }
+
+  const wallShape = new THREE.Shape();
+  wallShape.moveTo(-wallWidth / 2, 0);
+  wallShape.lineTo(wallWidth / 2, 0);
+  wallShape.lineTo(wallWidth / 2, wallHeight);
+  wallShape.lineTo(-wallWidth / 2, wallHeight);
+  wallShape.lineTo(-wallWidth / 2, 0);
+
+  const doorwayShape = new THREE.Path();
+  doorwayShape.moveTo(-options.doorwayWidth / 2, 0);
+  doorwayShape.lineTo(options.doorwayWidth / 2, 0);
+  doorwayShape.lineTo(options.doorwayWidth / 2, options.doorwayHeight);
+  doorwayShape.lineTo(-options.doorwayWidth / 2, options.doorwayHeight);
+  doorwayShape.lineTo(-options.doorwayWidth / 2, 0);
+  wallShape.holes.push(doorwayShape);
+
+  const wallGeometry = new THREE.ExtrudeGeometry(wallShape, { depth: wallThickness, bevelEnabled: false });
+  const wallMaterial = new THREE.MeshStandardMaterial({ color: options.wallColor });
+  const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+  wall.position.z = -wallThickness / 2;
+  wall.name = 'wall';
+  scene.add(wall);
+}
+
+// Funktion zum Erstellen eines LOFT French Elements
+function createLoftFrenchElement(width, height, depth, position, material) {
+  const geometry = new THREE.BoxGeometry(width, height, depth);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(position.x, position.y, position.z);
+  return mesh;
+}
+
+// Aktuell hinzugefügtes Element (zum Entfernen bei Wechsel)
+let currentElement = null;
+
+// Funktion zum Entfernen des aktuellen Elements
+function removeCurrentElement() {
+  if (currentElement) {
+    scene.remove(currentElement);
+    currentElement = null;
+  }
+}
+
+// Funktion zum Hinzufügen einer Drehtür
+function addSwingDoor(options) {
+  removeCurrentElement();
+
+  const doorWidth = options.doorwayWidth - 10; // 5mm Abstand zu beiden Seiten
+  const doorHeight = options.doorwayHeight - 5; // 5mm Abstand oben
+
+  // Zarge erstellen
+  const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+  const zargeWidth = options.zargeType === 'standard' ? 5 : 2; // Breite der Zarge
+  const zargeDepth = 5; // Tiefe der Zarge
+
+  const topZarge = createLoftFrenchElement(doorWidth, zargeWidth, zargeDepth, {
+    x: 0,
+    y: options.doorwayHeight - options.doorwayWidth / 2,
+    z: 0
+  }, zargeMaterial);
+
+  const leftZarge = createLoftFrenchElement(zargeWidth, doorHeight, zargeDepth, {
+    x: -doorWidth / 2 - zargeWidth / 2,
+    y: doorHeight / 2,
+    z: 0
+  }, zargeMaterial);
+
+  const rightZarge = createLoftFrenchElement(zargeWidth, doorHeight, zargeDepth, {
+    x: doorWidth / 2 + zargeWidth / 2,
+    y: doorHeight / 2,
+    z: 0
+  }, zargeMaterial);
+
+  // Türblatt erstellen
+  const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+  const door = createLoftFrenchElement(doorWidth - zargeWidth * 2, doorHeight - zargeWidth, 4, {
+    x: 0,
+    y: doorHeight / 2,
+    z: 0
+  }, doorMaterial);
+
+  currentElement = new THREE.Group();
+  currentElement.add(topZarge, leftZarge, rightZarge, door);
+  scene.add(currentElement);
+}
+
+// Funktion zum Hinzufügen einer Schiebetür
+function addSlidingDoor(options) {
+  removeCurrentElement();
+
+  const doorWidth = options.doorwayWidth + 20; // 2cm größer in der Breite
+  const doorHeight = options.doorwayHeight + 10; // 1cm größer in der Höhe
+  const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x666666 });
+
+  const slidingDoor = createLoftFrenchElement(doorWidth, doorHeight, 4, {
+    x: 0,
+    y: doorHeight / 2,
+    z: wallThickness / 2 + 3 // Vor der Wand
+  }, doorMaterial);
+
+  currentElement = slidingDoor;
+  scene.add(currentElement);
+}
+
+// Funktion zum Hinzufügen einer Trennwand
+function addPartition(options) {
+  removeCurrentElement();
+
+  const partitionWidth = options.doorwayWidth;
+  const partitionHeight = options.doorwayHeight;
+  const partitionMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+
+  const partition = createLoftFrenchElement(partitionWidth, partitionHeight, 4, {
+    x: 0,
+    y: partitionHeight / 2,
+    z: 0 
+  }, partitionMaterial);
+
+  currentElement = partition;
+  scene.add(currentElement);
+}
+
+// GUI-Konfiguration
+const gui = new GUI();
+const options = {
+  doorwayWidth: 100, // Initialwert in cm
+  doorwayHeight: 210, // Initialwert in cm
+  wallColor: '#ffffff',
+  elementType: 'none', // Typ des Elements
+  zargeType: 'standard' // Zarge Typ
+};
+
+gui.add(options, 'doorwayWidth', 50, 300).onChange((value) => {
+  options.doorwayWidth = value;
+  updateWallWithDoorway(options);
+  if (options.elementType === 'swing door') addSwingDoor(options);
+  if (options.elementType === 'sliding door') addSlidingDoor(options);
+  if (options.elementType === 'partition') addPartition(options);
+});
+
+gui.add(options, 'doorwayHeight', 190, 300).onChange((value) => {
+  options.doorwayHeight = value;
+  updateWallWithDoorway(options);
+  if (options.elementType === 'swing door') addSwingDoor(options);
+  if (options.elementType === 'sliding door') addSlidingDoor(options);
+  if (options.elementType === 'partition') addPartition(options);
+});
+
+gui.addColor(options, 'wallColor').onChange((value) => {
+  options.wallColor = value;
+  updateWallWithDoorway(options);
+});
+
+gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
+  options.elementType = value;
+  if (value === 'none') removeCurrentElement();
+  if (value === 'swing door') addSwingDoor(options);
+  if (value === 'sliding door') addSlidingDoor(options);
+  if (value === 'partition') addPartition(options);
+});
+
+gui.add(options, 'zargeType', ['standard', 'slim']);
+
+// Initial Wand mit Durchgang erstellen
+updateWallWithDoorway(options);
+
+// Animation-Schleife
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+animate();
+
+        
+    </script>
+</body>
+</html>

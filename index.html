@@ -202,46 +202,73 @@ const options = {
   doorwayHeight: 210, // Initialwert in cm
   wallColor: '#ffffff',
   elementType: 'none', // Typ des Elements
-  zargeType: 'standard' // Zarge Typ
+  zargeType: 'standard', // Zarge Typ
 };
 
-gui.add(options, 'doorwayWidth', 50, 300).onChange((value) => {
+// Add controls
+const doorwayWidthControl = gui.add(options, 'doorwayWidth', 50, 300).onChange((value) => {
   options.doorwayWidth = value;
   updateWallWithDoorway(options);
-  if (options.elementType === 'swing door') addSwingDoor(options);
-  if (options.elementType === 'sliding door') addSlidingDoor(options);
-  if (options.elementType === 'partition') addPartition(options);
+  updateElement();
 });
 
-gui.add(options, 'doorwayHeight', 190, 300).onChange((value) => {
+const doorwayHeightControl = gui.add(options, 'doorwayHeight', 190, 300).onChange((value) => {
   options.doorwayHeight = value;
   updateWallWithDoorway(options);
-  if (options.elementType === 'swing door') addSwingDoor(options);
-  if (options.elementType === 'sliding door') addSlidingDoor(options);
-  if (options.elementType === 'partition') addPartition(options);
+  updateElement();
 });
 
-gui.addColor(options, 'wallColor').onChange((value) => {
+const wallColorControl = gui.addColor(options, 'wallColor').onChange((value) => {
   options.wallColor = value;
   updateWallWithDoorway(options);
 });
 
-gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
+const elementTypeControl = gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
   options.elementType = value;
-  if (value === 'none') removeCurrentElement();
-  if (value === 'swing door') addSwingDoor(options);
-  if (value === 'sliding door') addSlidingDoor(options);
-  if (value === 'partition') addPartition(options);
-});
-gui.add(options, 'zargeType', ['standard', 'slim']).onChange((value) => {
-  options.zargeType = value; // Update the Zarge type
-  if (options.elementType === 'swing door') {
-    addSwingDoor(options); // Recreate the swing door with updated Zarge thickness
-  }
+  updateElement();
+  toggleZargeControl(value);
 });
 
-// Initial Wand mit Durchgang erstellen
+// Add Zarge Type (initially hidden)
+let zargeControl;
+function addZargeControl() {
+  zargeControl = gui.add(options, 'zargeType', ['standard', 'slim']).onChange(() => {
+    updateElement();
+  });
+}
+
+function removeZargeControl() {
+  if (zargeControl) {
+    gui.remove(zargeControl);
+    zargeControl = null;
+  }
+}
+
+// Toggle Zarge control visibility based on elementType
+function toggleZargeControl(elementType) {
+  if (elementType === 'swing door' && !zargeControl) {
+    addZargeControl();
+  } else if (elementType !== 'swing door') {
+    removeZargeControl();
+  }
+}
+
+// Update the current element based on selected options
+function updateElement() {
+  if (options.elementType === 'none') {
+    removeCurrentElement();
+  } else if (options.elementType === 'swing door') {
+    addSwingDoor(options);
+  } else if (options.elementType === 'sliding door') {
+    addSlidingDoor(options);
+  } else if (options.elementType === 'partition') {
+    addPartition(options);
+  }
+}
+
+// Initialize the wall with doorway and the GUI
 updateWallWithDoorway(options);
+toggleZargeControl(options.elementType);
 
 // Animation-Schleife
 function animate() {

@@ -111,9 +111,6 @@ function removeCurrentElement() {
 function addSwingDoor(options) {
   removeCurrentElement();
 
-  const zargeThickness = 0.5; // Thickness reduction on each side (0.5 cm)
-  const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
-
  // Determine Zarge thickness based on selected type
   const zargeThickness = options.zargeType === 'standard' ? 5 : 2; // 5 cm for standard, 2 cm for slim
   const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });

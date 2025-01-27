@@ -118,25 +118,25 @@ function addSwingDoor(options) {
   // Calculate Zarge dimensions
   const zargeWidth = options.doorwayWidth - zargeThickness * 2; // Width reduced on both sides
   const zargeHeight = options.doorwayHeight - zargeThickness; // Height reduced at the top
-  const zargeDepth = zargeThickness; // Zarge depth matches its thickness
+  const zargeDepth = 5; // Zarge depth is always 5 cm
 
   // Create top Zarge
   const topZarge = createLoftFrenchElement(zargeWidth, zargeThickness, zargeDepth, {
     x: 0,
-    y: options.doorwayHeight - zargeThickness / 2 + zargeThickness,
+    y: options.doorwayHeight - zargeThickness / 2,
     z: 0,
   }, zargeMaterial);
 
   // Create side Zarges
   const sideZargeHeight = zargeHeight - zargeThickness; // Inner Zarge height
   const leftZarge = createLoftFrenchElement(zargeThickness, sideZargeHeight, zargeDepth, {
-    x: -zargeWidth / 2 - zargeThickness / 2 + zargeThickness,
+    x: -zargeWidth / 2 - zargeThickness / 2,
     y: sideZargeHeight / 2,
     z: 0,
   }, zargeMaterial);
 
   const rightZarge = createLoftFrenchElement(zargeThickness, sideZargeHeight, zargeDepth, {
-    x: zargeWidth / 2 + zargeThickness / 2 + zargeThickness,
+    x: zargeWidth / 2 + zargeThickness / 2,
     y: sideZargeHeight / 2,
     z: 0,
   }, zargeMaterial);

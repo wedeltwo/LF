@@ -108,44 +108,51 @@ function removeCurrentElement() {
   }
 }
 
-// Funktion zum Hinzufügen einer Drehtür
 function addSwingDoor(options) {
   removeCurrentElement();
 
-  const doorWidth = options.doorwayWidth - 10; // 5mm Abstand zu beiden Seiten
-  const doorHeight = options.doorwayHeight - 5; // 5mm Abstand oben
-
-  // Zarge erstellen
+  const zargeThickness = 0.5; // Thickness reduction on each side (0.5 cm)
   const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
-  const zargeWidth = options.zargeType === 'standard' ? 5 : 2; // Breite der Zarge
-  const zargeDepth = 5; // Tiefe der Zarge
 
-  const topZarge = createLoftFrenchElement(doorWidth, zargeWidth, zargeDepth, {
+  // Calculate Zarge dimensions
+  const zargeWidth = options.doorwayWidth - zargeThickness * 2; // Width reduced on both sides
+  const zargeHeight = options.doorwayHeight - zargeThickness; // Height reduced at the top
+  const zargeDepth = 5; // Fixed depth of Zarge
+
+  // Create top Zarge
+  const topZarge = createLoftFrenchElement(zargeWidth, zargeThickness, zargeDepth, {
     x: 0,
-    y: options.doorwayHeight - options.doorwayWidth / 2,
-    z: 0
+    y: options.doorwayHeight - zargeThickness / 2,
+    z: 0,
   }, zargeMaterial);
 
-  const leftZarge = createLoftFrenchElement(zargeWidth, doorHeight, zargeDepth, {
-    x: -doorWidth / 2 - zargeWidth / 2,
-    y: doorHeight / 2,
-    z: 0
+  // Create side Zarges
+  const sideZargeHeight = zargeHeight - zargeThickness; // Inner Zarge height
+  const leftZarge = createLoftFrenchElement(zargeThickness, sideZargeHeight, zargeDepth, {
+    x: -zargeWidth / 2 - zargeThickness / 2,
+    y: sideZargeHeight / 2,
+    z: 0,
   }, zargeMaterial);
 
-  const rightZarge = createLoftFrenchElement(zargeWidth, doorHeight, zargeDepth, {
-    x: doorWidth / 2 + zargeWidth / 2,
-    y: doorHeight / 2,
-    z: 0
+  const rightZarge = createLoftFrenchElement(zargeThickness, sideZargeHeight, zargeDepth, {
+    x: zargeWidth / 2 + zargeThickness / 2,
+    y: sideZargeHeight / 2,
+    z: 0,
   }, zargeMaterial);
 
-  // Türblatt erstellen
+  // Calculate Door dimensions
+  const doorWidth = zargeWidth - 0.4; // Reduced by 0.2 cm on both sides
+  const doorHeight = zargeHeight - 1; // Reduced by 0.2 cm on top and 1 cm at bottom
   const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
-  const door = createLoftFrenchElement(doorWidth - zargeWidth * 2, doorHeight - zargeWidth, 4, {
+
+  // Create the Door
+  const door = createLoftFrenchElement(doorWidth, doorHeight, 4, {
     x: 0,
     y: doorHeight / 2,
-    z: 0
+    z: 0,
   }, doorMaterial);
 
+  // Group Zarge and Door
   currentElement = new THREE.Group();
   currentElement.add(topZarge, leftZarge, rightZarge, door);
   scene.add(currentElement);

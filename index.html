@@ -111,24 +111,17 @@ function removeCurrentElement() {
 function addSwingDoor(options) {
   removeCurrentElement();
 
- // Determine Zarge thickness based on selected type
+  // Determine Zarge thickness based on selected type
   const zargeThickness = options.zargeType === 'standard' ? 5 : 2; // 5 cm for standard, 2 cm for slim
   const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 
   // Calculate Zarge dimensions
-  const zargeWidth = options.doorwayWidth - zargeThickness * 2; // Width reduced on both sides
-  const zargeHeight = options.doorwayHeight - zargeThickness; // Height reduced at the top
+  const zargeWidth = options.doorwayWidth; // Matches doorway width
+  const zargeHeight = options.doorwayHeight; // Matches doorway height
   const zargeDepth = zargeThickness; // Zarge depth matches its thickness
 
-  // Create top Zarge
-  const topZarge = createLoftFrenchElement(zargeWidth, zargeThickness, zargeDepth, {
-    x: 0,
-    y: options.doorwayHeight - zargeThickness / 2,
-    z: 0,
-  }, zargeMaterial);
-
-  // Create side Zarges
-  const sideZargeHeight = zargeHeight - zargeThickness; // Inner Zarge height
+  // Create side Zarges (extend to seamlessly meet the top)
+  const sideZargeHeight = zargeHeight; // Full height of the doorway
   const leftZarge = createLoftFrenchElement(zargeThickness, sideZargeHeight, zargeDepth, {
     x: -zargeWidth / 2 - zargeThickness / 2,
     y: sideZargeHeight / 2,
@@ -141,21 +134,29 @@ function addSwingDoor(options) {
     z: 0,
   }, zargeMaterial);
 
+  // Create top Zarge (width matches doorway width + Zarge thickness on both sides)
+  const topZargeWidth = zargeWidth + zargeThickness * 2; // Extend across the top, covering the gap
+  const topZarge = createLoftFrenchElement(topZargeWidth, zargeThickness, zargeDepth, {
+    x: 0,
+    y: zargeHeight - zargeThickness / 2, // Positioned at the top edge
+    z: 0,
+  }, zargeMaterial);
+
   // Calculate Door dimensions
   const doorWidth = zargeWidth - 0.4; // Reduced by 0.2 cm on both sides
-  const doorHeight = zargeHeight - 1; // Reduced by 0.2 cm on top and 1 cm at bottom
+  const doorHeight = zargeHeight - 1; // Reduced by 1 cm at the bottom
   const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
 
   // Create the Door
   const door = createLoftFrenchElement(doorWidth, doorHeight, 4, {
     x: 0,
-    y: doorHeight / 2,
+    y: doorHeight / 2 + 1, // Move door up by 1 cm
     z: 0,
   }, doorMaterial);
 
   // Group Zarge and Door
   currentElement = new THREE.Group();
-  currentElement.add(topZarge, leftZarge, rightZarge, door);
+  currentElement.add(leftZarge, rightZarge, topZarge, door);
   scene.add(currentElement);
 }
 

@@ -111,46 +111,46 @@ function removeCurrentElement() {
 function addSwingDoor(options) {
   removeCurrentElement();
 
-  // Determine Zarge thickness based on selected type
-  const zargeThickness = options.zargeType === 'standard' ? 5 : 2; // 5 cm for standard, 2 cm for slim
+  // Zarge thickness (depends on selected type)
+  const zargeThickness = options.zargeType === 'standard' ? 5 : 2; // Standard or Slim Zarge
   const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 
-  // Calculate Zarge dimensions
-  const zargeWidth = options.doorwayWidth; // Matches doorway width
-  const zargeHeight = options.doorwayHeight; // Matches doorway height
-  const zargeDepth = zargeThickness; // Zarge depth matches its thickness
+  // Dimensions of the Zarge (0.5 cm smaller than the doorway)
+  const zargeWidth = options.doorwayWidth - 0.5; // 0.5 cm smaller in width
+  const zargeHeight = options.doorwayHeight - 0.5; // 0.5 cm smaller in height
+  const zargeDepth = zargeThickness; // Depth matches Zarge thickness
 
-  // Create side Zarges (extend to seamlessly meet the top)
-  const sideZargeHeight = zargeHeight; // Full height of the doorway
+  // Create side Zarges
+  const sideZargeHeight = zargeHeight; // Full height of the doorway (adjusted for 0.5 cm)
   const leftZarge = createLoftFrenchElement(zargeThickness, sideZargeHeight, zargeDepth, {
-    x: -zargeWidth / 2 - zargeThickness / 2,
+    x: -zargeWidth / 2 - zargeThickness / 2, // Positioned snugly to the left side of the doorway
     y: sideZargeHeight / 2,
     z: 0,
   }, zargeMaterial);
 
   const rightZarge = createLoftFrenchElement(zargeThickness, sideZargeHeight, zargeDepth, {
-    x: zargeWidth / 2 + zargeThickness / 2,
+    x: zargeWidth / 2 + zargeThickness / 2, // Positioned snugly to the right side of the doorway
     y: sideZargeHeight / 2,
     z: 0,
   }, zargeMaterial);
 
-  // Create top Zarge (width matches doorway width + Zarge thickness on both sides)
-  const topZargeWidth = zargeWidth + zargeThickness * 2; // Extend across the top, covering the gap
+  // Create top Zarge
+  const topZargeWidth = zargeWidth; // Matches adjusted width of the doorway
   const topZarge = createLoftFrenchElement(topZargeWidth, zargeThickness, zargeDepth, {
     x: 0,
-    y: zargeHeight - zargeThickness / 2, // Positioned at the top edge
+    y: zargeHeight - zargeThickness / 2, // Positioned at the top edge of the doorway
     z: 0,
   }, zargeMaterial);
 
-  // Calculate Door dimensions
-  const doorWidth = zargeWidth - 0.4; // Reduced by 0.2 cm on both sides
-  const doorHeight = zargeHeight - 1; // Reduced by 1 cm at the bottom
+  // Dimensions of the door (0.2 cm smaller on sides and top, 1 cm smaller at bottom)
+  const doorWidth = zargeWidth - 0.4; // 0.2 cm smaller on both sides
+  const doorHeight = zargeHeight - 1; // 1 cm smaller at the bottom
   const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
 
-  // Create the Door
+  // Create the door
   const door = createLoftFrenchElement(doorWidth, doorHeight, 4, {
     x: 0,
-    y: doorHeight / 2 + 1, // Move door up by 1 cm
+    y: doorHeight / 2 + 1, // Move door 1 cm up
     z: 0,
   }, doorMaterial);
 
@@ -159,7 +159,7 @@ function addSwingDoor(options) {
   currentElement.add(leftZarge, rightZarge, topZarge, door);
   scene.add(currentElement);
 }
-
+        
 // Funktion zum Hinzufügen einer Schiebetür
 function addSlidingDoor(options) {
   removeCurrentElement();

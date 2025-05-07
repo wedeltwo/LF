@@ -111,28 +111,28 @@ const innerTop = new THREE.Mesh(
   new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth),
   sprosseMaterial
 );
-innerTop.position.set(0, (innerHeight / 2 + 1.5), 0);
+innerTop.position.set(1.5, (innerHeight / 2), 0);
 group.add(innerTop);
 
 const innerBottom = new THREE.Mesh(
   new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth),
   sprosseMaterial
 );
-innerBottom.position.set(0, -(innerHeight / 2), 0);
+innerBottom.position.set(-1.5, -(innerHeight / 2), 0);
 group.add(innerBottom);
 
 const innerLeft = new THREE.Mesh(
   new THREE.BoxGeometry(innerFrameThickness, innerHeight, frameDepth),
   sprosseMaterial
 );
-innerLeft.position.set(-(innerWidth / 2), 0, 0);
+innerLeft.position.set(-(innerWidth / 2), 1.5, 0);
 group.add(innerLeft);
 
 const innerRight = new THREE.Mesh(
   new THREE.BoxGeometry(innerFrameThickness, innerHeight, frameDepth),
   sprosseMaterial
 );
-innerRight.position.set((innerWidth / 2), 0, 0);
+innerRight.position.set((innerWidth / 2), -1.5, 0);
 group.add(innerRight);
   // Glasfläche innerhalb des inneren Rahmens
   const glassWidth = innerWidth;

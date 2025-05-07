@@ -127,7 +127,7 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   group.add(glassMesh);
 
   // Sprossen innerhalb des Sprossenrahmens
-  const sprossenWidth = 1.5 * inch; // 38.1 mm
+  const sprossenWidth = 1.5; // 38.1 mm
   for (let i = 1; i < rows; i++) {
     const y = -glassHeight / 2 + (i * glassHeight) / rows;
     const hSprosse = new THREE.Mesh(

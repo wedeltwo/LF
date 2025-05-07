@@ -100,7 +100,7 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   group.add(outerRight);
 
 // Spalt (sichtbar) – z.B. 0.2 cm = 2 mm
-const gap = 1.7; // mm
+const gap = 1.6; // mm
 
 // Innenrahmen-Größe
 const innerWidth = width - 2 * mainFrameThickness - gap;
@@ -111,7 +111,7 @@ const innerTop = new THREE.Mesh(
   new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth),
   sprosseMaterial
 );
-innerTop.position.set(0, (innerHeight / 2), 0);
+innerTop.position.set(0, (innerHeight / 2 + 1.5), 0);
 group.add(innerTop);
 
 const innerBottom = new THREE.Mesh(

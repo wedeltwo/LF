@@ -75,12 +75,12 @@ function removeCurrentElement() {
 
 function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMaterial, sprosseMaterial) {
 
-  // Haupt-Rahmen (2x4 Zoll)
-  const mainFrameThickness = 2;   // 50.8 mm
-  const frameDepth = 4;           // 101.6 mm
+  // Haupt-Rahmen 
+  const mainFrameThickness = 2;   
+  const frameDepth = 4;          
 
-  // Innenrahmen für Sprossen (1.5x4 Zoll)
-  const innerFrameThickness = 1.5; // 38.1 mm
+  // Innenrahmen für Sprossen
+  const innerFrameThickness = 1.5; 
 
   // === Hauptrahmen (umlaufend) ===
   const outerTop = new THREE.Mesh(new THREE.BoxGeometry(width, mainFrameThickness, frameDepth), sprosseMaterial);
@@ -100,23 +100,23 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   group.add(outerRight);
 
   // Innenrahmen (Sprossenrahmen, umlaufend innerhalb des Hauptrahmens)
-  const innerWidth = width - 2 * mainFrameThickness;
-  const innerHeight = height - 2 * mainFrameThickness;
+  const innerWidth = width - mainFrameThickness - 0.1;
+  const innerHeight = height - mainFrameThickness - 0.1;
 
   const innerTop = new THREE.Mesh(new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth), sprosseMaterial);
-  innerTop.position.set(0, innerHeight / 2, 0);
+  innerTop.position.set(0, innerHeight / 2 + 0.05, 0);
   group.add(innerTop);
 
   const innerBottom = new THREE.Mesh(new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth), sprosseMaterial);
-  innerBottom.position.set(0, -innerHeight / 2, 0);
+  innerBottom.position.set(0, -innerHeight / 2 - 0.05, 0);
   group.add(innerBottom);
 
   const innerLeft = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight - 2 * innerFrameThickness, frameDepth), sprosseMaterial);
-  innerLeft.position.set(-innerWidth / 2, 0, 0);
+  innerLeft.position.set(-innerWidth / 2 - 0.05, 0, 0);
   group.add(innerLeft);
 
   const innerRight = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight - 2 * innerFrameThickness, frameDepth), sprosseMaterial);
-  innerRight.position.set(innerWidth / 2, 0, 0);
+  innerRight.position.set(innerWidth / 2 + 0.05, 0, 0);
   group.add(innerRight);
 
   // Glasfläche innerhalb des inneren Rahmens

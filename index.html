@@ -544,6 +544,11 @@ const SeitenteillinksControl = gui.add(options, 'Seitenteillinks', ['nein', 'ja'
   toggleSeitenteillinksbreite(value);
 });
 
+// GUI-Option: Breite des linken Seitenteils
+const SeitenteillinksbreiteControl = gui.add(options, 'Seitenteillinksbreite', 20, 110).onChange((value) => {
+  updateSeitenteillinks();
+});
+        
 // Referenz zum Controller (anfangs null)
 let seitenteillinksbreiteControl = null;
 

@@ -297,9 +297,25 @@ function addSlidingDoor(options) {
     y: options.Elementhöhe + 4, // Position bündig über der Tür
     z: 2.5, // Bündig mit der Wand
   }, doorMaterial);
+  let cover = null;
 
-  slidingDoorGroup.add(cover); // Blende zur Türgruppe hinzufügen
+function updateCover() {
+  if (cover) {
+    slidingDoorGroup.remove(cover);
+  }
 
+  const coverWidth = options.Elementbreite + options.Seitenteillinksbreite + options.Seitenteilrechtsbreite;
+  const coverHeight = 8;
+  const coverDepth = 9;
+
+  cover = createLoftFrenchElement(coverWidth, coverHeight, coverDepth, {
+    x: 0,
+    y: options.Elementhöhe + 4,
+    z: 2.5,
+  }, doorMaterial);
+
+  slidingDoorGroup.add(cover);
+  
   currentElement = slidingDoorGroup;
   scene.add(currentElement);
 }
@@ -483,6 +499,7 @@ const ElementbreiteControl = gui.add(options, 'Elementbreite', 50, 300).onChange
   updateElement();
   updateSeitenteillinks();
   updateSeitenteilrechts();
+  updateCover();
 });
 
 const ElementhöheControl = gui.add(options, 'Elementhöhe', 50, 300).onChange((value) => {
@@ -554,7 +571,8 @@ function addSeitenteillinksbreiteControl() {
     .add(options, 'Seitenteillinksbreite', 20, 110)
     .name('Seitenteil links Breite')
     .onChange(() => {
-      updateSeitenteillinks(); // oder was immer du beim Ändern tun willst
+      updateSeitenteillinks(); 
+      updateCover();// oder was immer du beim Ändern tun willst
     });
 }
 
@@ -592,7 +610,8 @@ function addSeitenteilrechtsbreiteControl() {
     .add(options, 'Seitenteilrechtsbreite', 20, 110)
     .name('Seitenteil links Breite')
     .onChange(() => {
-      updateSeitenteilrechts(); // oder was immer du beim Ändern tun willst
+      updateSeitenteilrechts(); 
+      updateCover();// oder was immer du beim Ändern tun willst
     });
 }
 

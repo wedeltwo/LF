@@ -253,7 +253,7 @@ function addSlidingDoor(options) {
     // Einflügelige Schiebetür mittig
     const singleDoor = new THREE.Group();
     createDoorWithGlassAndFrame(singleDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
-    singleDoor.position.set(0, doorHeight / 2, 2); // Mittig vor der Wand
+    singleDoor.position.set(0, doorHeight / 2 + 1, 2); // Mittig vor der Wand
     slidingDoorGroup.add(singleDoor);
   }
 
@@ -264,8 +264,8 @@ function addSlidingDoor(options) {
 
   const cover = createLoftFrenchElement(coverWidth, coverHeight, coverDepth, {
     x: 0,
-    y: options.Elementhöhe + 5, // Position bündig über der Tür
-    z: 0, // Bündig mit der Wand
+    y: options.Elementhöhe + 4, // Position bündig über der Tür
+    z: 2.5, // Bündig mit der Wand
   }, doorMaterial);
 
   slidingDoorGroup.add(cover); // Blende zur Türgruppe hinzufügen

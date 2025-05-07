@@ -543,12 +543,7 @@ const SeitenteillinksControl = gui.add(options, 'Seitenteillinks', ['nein', 'ja'
   updateSeitenteillinks();
   toggleSeitenteillinksbreiteControl(value);
 });
-
-// GUI-Option: Breite des linken Seitenteils
-const SeitenteillinksbreiteControl = gui.add(options, 'Seitenteillinksbreite', 20, 110).onChange((value) => {
-  updateSeitenteillinks();
-});
-        
+       
 // Referenz zum Controller (anfangs null)
 let seitenteillinksbreiteControl = null;
 
@@ -583,24 +578,40 @@ function toggleSeitenteillinksbreiteControl(value) {
 const SeitenteilrechtsControl = gui.add(options, 'Seitenteilrechts', ['nein', 'ja']).onChange((value) => {
   options.Seitenteilrechts = value;
   updateSeitenteilrechts();
-  toggleSeitenteilrechtsbreite(value);
+  toggleSeitenteilrechtsbreiteControl(value);
 });
 
-// GUI-Option: Breite des linken Seitenteils
-const SeitenteilrechtsbreiteControl = gui.add(options, 'Seitenteilrechtsbreite', 20, 110).onChange((value) => {
-  updateSeitenteilrechts();
-});
-// Direkt nach dem Erstellen verstecken:
-SeitenteilrechtsbreiteControl.domElement.parentElement.style.display = 'none';
+      
+// Referenz zum Controller (anfangs null)
+let SeitenteilrechtsbreiteControl = null;
 
-// Breiten-Slider zeigen/verstecken
-function toggleSeitenteilrechtsbreite(value) {
-  if (value === 'ja') {
-    SeitenteilrechtsbreiteControl.domElement.parentElement.style.display = '';
-  } else {
-    SeitenteilrechtsbreiteControl.domElement.parentElement.style.display = 'none';
+// Funktion zum Hinzufügen des Sliders
+function addSeitenteilrechtsbreiteControl() {
+  SeitenteilrechtsbreiteControl = gui
+    .add(options, 'Seitenteilrechtsbreite', 20, 110)
+    .name('Seitenteil links Breite')
+    .onChange(() => {
+      updateSeitenteilrechts(); // oder was immer du beim Ändern tun willst
+    });
+}
+
+// Funktion zum Entfernen des Sliders
+function removeSeitenteilrechtsbreiteControl() {
+  if (SeitenteilrechtsbreiteControl) {
+    gui.remove(SeitenteilrechtsbreiteControl);
+    SeitenteilrechtsbreiteControl = null;
   }
 }
+
+// Funktion zum Umschalten je nach Auswahl
+function toggleSeitenteilrechtsbreiteControl(value) {
+  if (value === 'ja' && !SeitenteilrechtsbreiteControl) {
+    addSeitenteilrechtsbreiteControl();
+  } else if (value !== 'ja') {
+    removeSeitenteilrechtsbreiteControl();
+  }
+}
+
         
 // Add Zarge Type (initially hidden)
 let zargeControl;

@@ -74,63 +74,78 @@ function removeCurrentElement() {
 }
 
 function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMaterial, sprosseMaterial) {
-  // Rahmen
-  const frameThickness = 3.5; // Rahmenbreite
-  const frameDepth = 4; // Rahmentiefe
 
-  // Rahmen oben
-  const topFrameGeometry = new THREE.BoxGeometry(width, frameThickness, frameDepth);
-  const topFrameMesh = new THREE.Mesh(topFrameGeometry, sprosseMaterial);
-  topFrameMesh.position.set(0, height / 2 - frameThickness / 2, 0);
-  group.add(topFrameMesh);
+  // Haupt-Rahmen (2x4 Zoll)
+  const mainFrameThickness = 2;   // 50.8 mm
+  const frameDepth = 4;           // 101.6 mm
 
-  // Rahmen unten
-  const bottomFrameGeometry = new THREE.BoxGeometry(width, frameThickness, frameDepth);
-  const bottomFrameMesh = new THREE.Mesh(bottomFrameGeometry, sprosseMaterial);
-  bottomFrameMesh.position.set(0, -height / 2 + frameThickness / 2, 0);
-  group.add(bottomFrameMesh);
+  // Innenrahmen für Sprossen (1.5x4 Zoll)
+  const innerFrameThickness = 1.5; // 38.1 mm
 
-  // Rahmen links
-  const leftFrameGeometry = new THREE.BoxGeometry(frameThickness, height - 2 * frameThickness, frameDepth);
-  const leftFrameMesh = new THREE.Mesh(leftFrameGeometry, sprosseMaterial);
-  leftFrameMesh.position.set(-width / 2 + frameThickness / 2, 0, 0);
-  group.add(leftFrameMesh);
+  // === Hauptrahmen (umlaufend) ===
+  const outerTop = new THREE.Mesh(new THREE.BoxGeometry(width, mainFrameThickness, frameDepth), sprosseMaterial);
+  outerTop.position.set(0, height / 2 - mainFrameThickness / 2, 0);
+  group.add(outerTop);
 
-  // Rahmen rechts
-  const rightFrameGeometry = new THREE.BoxGeometry(frameThickness, height - 2 * frameThickness, frameDepth);
-  const rightFrameMesh = new THREE.Mesh(rightFrameGeometry, sprosseMaterial);
-  rightFrameMesh.position.set(width / 2 - frameThickness / 2, 0, 0);
-  group.add(rightFrameMesh);
+  const outerBottom = new THREE.Mesh(new THREE.BoxGeometry(width, mainFrameThickness, frameDepth), sprosseMaterial);
+  outerBottom.position.set(0, -height / 2 + mainFrameThickness / 2, 0);
+  group.add(outerBottom);
 
-  // Glas
-  const glassWidth = width - 2 * frameThickness;
-  const glassHeight = height - 2 * frameThickness;
+  const outerLeft = new THREE.Mesh(new THREE.BoxGeometry(mainFrameThickness, height - 2 * mainFrameThickness, frameDepth), sprosseMaterial);
+  outerLeft.position.set(-width / 2 + mainFrameThickness / 2, 0, 0);
+  group.add(outerLeft);
+
+  const outerRight = new THREE.Mesh(new THREE.BoxGeometry(mainFrameThickness, height - 2 * mainFrameThickness, frameDepth), sprosseMaterial);
+  outerRight.position.set(width / 2 - mainFrameThickness / 2, 0, 0);
+  group.add(outerRight);
+
+  // Innenrahmen (Sprossenrahmen, umlaufend innerhalb des Hauptrahmens)
+  const innerWidth = width - 2 * mainFrameThickness;
+  const innerHeight = height - 2 * mainFrameThickness;
+
+  const innerTop = new THREE.Mesh(new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth), sprosseMaterial);
+  innerTop.position.set(0, innerHeight / 2, 0);
+  group.add(innerTop);
+
+  const innerBottom = new THREE.Mesh(new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth), sprosseMaterial);
+  innerBottom.position.set(0, -innerHeight / 2, 0);
+  group.add(innerBottom);
+
+  const innerLeft = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight - 2 * innerFrameThickness, frameDepth), sprosseMaterial);
+  innerLeft.position.set(-innerWidth / 2, 0, 0);
+  group.add(innerLeft);
+
+  const innerRight = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight - 2 * innerFrameThickness, frameDepth), sprosseMaterial);
+  innerRight.position.set(innerWidth / 2, 0, 0);
+  group.add(innerRight);
+
+  // Glasfläche innerhalb des inneren Rahmens
+  const glassWidth = innerWidth - 2 * innerFrameThickness;
+  const glassHeight = innerHeight - 2 * innerFrameThickness;
   const glassDepth = 0.7;
-  const glassGeometry = new THREE.BoxGeometry(glassWidth, glassHeight, glassDepth);
-  const glassMesh = new THREE.Mesh(glassGeometry, glassMaterial);
+  const glassMesh = new THREE.Mesh(new THREE.BoxGeometry(glassWidth, glassHeight, glassDepth), glassMaterial);
   group.add(glassMesh);
 
-  // Sprossen
-  const sprossenWidth = 1.5; // Dicke der Sprossen
-  const sprossenDepth = 4;  
+  // Sprossen innerhalb des Sprossenrahmens
+  const sprossenWidth = 1.5 * inch; // 38.1 mm
   for (let i = 1; i < rows; i++) {
-    const y = -height / 2 + (i * height) / rows;
-    const horizontalSprosse = new THREE.Mesh(
-      new THREE.BoxGeometry(glassWidth, sprossenWidth, sprossenDepth),
+    const y = -glassHeight / 2 + (i * glassHeight) / rows;
+    const hSprosse = new THREE.Mesh(
+      new THREE.BoxGeometry(glassWidth, sprossenWidth, frameDepth),
       sprosseMaterial
     );
-    horizontalSprosse.position.set(0, y, 0);
-    group.add(horizontalSprosse);
+    hSprosse.position.set(0, y, 0);
+    group.add(hSprosse);
   }
 
   for (let j = 1; j < cols; j++) {
-    const x = -width / 2 + (j * width) / cols;
-    const verticalSprosse = new THREE.Mesh(
-      new THREE.BoxGeometry(sprossenWidth, glassHeight, sprossenDepth),
+    const x = -glassWidth / 2 + (j * glassWidth) / cols;
+    const vSprosse = new THREE.Mesh(
+      new THREE.BoxGeometry(sprossenWidth, glassHeight, frameDepth),
       sprosseMaterial
     );
-    verticalSprosse.position.set(x, 0, 0);
-    group.add(verticalSprosse);
+    vSprosse.position.set(x, 0, 0);
+    group.add(vSprosse);
   }
 }
 

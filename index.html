@@ -483,6 +483,7 @@ const ElementbreiteControl = gui.add(options, 'Elementbreite', 50, 300).onChange
   updateElement();
   updateSeitenteillinks();
   updateSeitenteilrechts();
+  updateCover();
 });
 
 const ElementhöheControl = gui.add(options, 'Elementhöhe', 50, 300).onChange((value) => {
@@ -544,11 +545,7 @@ const SeitenteillinksControl = gui.add(options, 'Seitenteillinks', ['nein', 'ja'
   toggleSeitenteillinksbreiteControl(value);
 });
 
-// GUI-Option: Breite des linken Seitenteils
-const SeitenteillinksbreiteControl = gui.add(options, 'Seitenteillinksbreite', 20, 110).onChange((value) => {
-  updateSeitenteillinks();
-});
-        
+      
 // Referenz zum Controller (anfangs null)
 let seitenteillinksbreiteControl = null;
 

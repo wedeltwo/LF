@@ -99,25 +99,31 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   outerRight.position.set(width / 2 - mainFrameThickness / 2, 0, 0);
   group.add(outerRight);
 
-  // Innenrahmen (Sprossenrahmen, umlaufend innerhalb des Hauptrahmens)
-  const innerWidth = width - mainFrameThickness - 1;
-  const innerHeight = height - mainFrameThickness - 1;
+ // Sichtbarer Spalt zwischen Rahmen (z. B. 0.2 cm = 2 mm)
+const gap = 2; // mm
 
-  const innerTop = new THREE.Mesh(new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth), sprosseMaterial);
-  innerTop.position.set(0, innerHeight / 2 + 0.5, 0);
-  group.add(innerTop);
+// Innenrahmen (Sprossenrahmen, umlaufend sichtbar innerhalb des Hauptrahmens)
+const innerWidth = width - 2 * mainFrameThickness - gap;
+const innerHeight = height - 2 * mainFrameThickness - gap;
 
-  const innerBottom = new THREE.Mesh(new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth), sprosseMaterial);
-  innerBottom.position.set(0, -innerHeight / 2 - 0.5, 0);
-  group.add(innerBottom);
+// Verschiebung gegenüber Hauptrahmenposition
+const offset = (mainFrameThickness + gap) / 2;
 
-  const innerLeft = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight, frameDepth), sprosseMaterial);
-  innerLeft.position.set(-innerWidth / 2 - 0.5, 0, 0);
-  group.add(innerLeft);
+const innerTop = new THREE.Mesh(new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth), sprosseMaterial);
+innerTop.position.set(0, innerHeight / 2 + offset, 0);
+group.add(innerTop);
 
-  const innerRight = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight, frameDepth), sprosseMaterial);
-  innerRight.position.set(innerWidth / 2 + 0.5, 0, 0);
-  group.add(innerRight);
+const innerBottom = new THREE.Mesh(new THREE.BoxGeometry(innerWidth, innerFrameThickness, frameDepth), sprosseMaterial);
+innerBottom.position.set(0, -innerHeight / 2 - offset, 0);
+group.add(innerBottom);
+
+const innerLeft = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight, frameDepth), sprosseMaterial);
+innerLeft.position.set(-innerWidth / 2 - offset, 0, 0);
+group.add(innerLeft);
+
+const innerRight = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight, frameDepth), sprosseMaterial);
+innerRight.position.set(innerWidth / 2 + offset, 0, 0);
+group.add(innerRight);
 
   // Glasfläche innerhalb des inneren Rahmens
   const glassWidth = innerWidth;

@@ -287,43 +287,22 @@ function addSlidingDoor(options) {
     slidingDoorGroup.add(singleDoor);
   }
 
-  // Globale Variable, damit updateCover() darauf zugreifen kann
-let cover = null;
+  // Obere Blende (Bündig mit Wand, doppelte Breite)
+  const coverWidth = (options.Elementbreite + options.Seitenteillinksbreite + options.Seitenteilrechtsbreite); // Doppelte Breite der Tür
+  const coverHeight = 8; // Höhe der Blende 8 cm
+  const coverDepth = 9; // Tiefe der Blende 9 cm
 
-// Beim Initialisieren (z. B. in deiner Hauptfunktion):
-function createInitialCover() {
-  const coverWidth = options.Elementbreite + options.Seitenteillinksbreite + options.Seitenteilrechtsbreite;
-  const coverHeight = 8;
-  const coverDepth = 9;
-
-  cover = createLoftFrenchElement(coverWidth, coverHeight, coverDepth, {
+  const cover = createLoftFrenchElement(coverWidth, coverHeight, coverDepth, {
     x: 0,
-    y: options.Elementhöhe + 4,
-    z: 2.5,
+    y: options.Elementhöhe + 4, // Position bündig über der Tür
+    z: 2.5, // Bündig mit der Wand
   }, doorMaterial);
 
-  slidingDoorGroup.add(cover);
+  slidingDoorGroup.add(cover); // Blende zur Türgruppe hinzufügen
+
+  currentElement = slidingDoorGroup;
+  scene.add(currentElement);
 }
-
-// Wenn sich Optionen ändern:
-function updateCover() {
-  if (cover) {
-    slidingDoorGroup.remove(cover);
-  }
-
-  const coverWidth = options.Elementbreite + options.Seitenteillinksbreite + options.Seitenteilrechtsbreite;
-  const coverHeight = 8;
-  const coverDepth = 9;
-
-  cover = createLoftFrenchElement(coverWidth, coverHeight, coverDepth, {
-    x: 0,
-    y: options.Elementhöhe + 4,
-    z: 2.5,
-  }, doorMaterial);
-
-  slidingDoorGroup.add(cover);
-}
-  
 
 // Trennwand
 function addTrennwand(options) {
@@ -473,7 +452,6 @@ const options = {
   sprossenRows: 2,
   sprossenCols: 2,
   doorType: 'single', // Neue Option: 'single' oder 'double'
-  isDoubleDoor: false,
   Seitenteillinks: 'nein',
   Seitenteillinksbreite: 20,
   Seitenteilrechts: 'nein',
@@ -566,7 +544,11 @@ const SeitenteillinksControl = gui.add(options, 'Seitenteillinks', ['nein', 'ja'
   toggleSeitenteillinksbreiteControl(value);
 });
 
-      
+// GUI-Option: Breite des linken Seitenteils
+const SeitenteillinksbreiteControl = gui.add(options, 'Seitenteillinksbreite', 20, 110).onChange((value) => {
+  updateSeitenteillinks();
+});
+        
 // Referenz zum Controller (anfangs null)
 let seitenteillinksbreiteControl = null;
 
@@ -576,7 +558,7 @@ function addSeitenteillinksbreiteControl() {
     .add(options, 'Seitenteillinksbreite', 20, 110)
     .name('Seitenteil links Breite')
     .onChange(() => {
-      updateSeitenteillinks(); 
+      updateSeitenteillinks(); // oder was immer du beim Ändern tun willst
     });
 }
 
@@ -601,40 +583,24 @@ function toggleSeitenteillinksbreiteControl(value) {
 const SeitenteilrechtsControl = gui.add(options, 'Seitenteilrechts', ['nein', 'ja']).onChange((value) => {
   options.Seitenteilrechts = value;
   updateSeitenteilrechts();
-  toggleSeitenteilrechtsbreiteControl(value);
+  toggleSeitenteilrechtsbreite(value);
 });
 
-      
-// Referenz zum Controller (anfangs null)
-let SeitenteilrechtsbreiteControl = null;
+// GUI-Option: Breite des linken Seitenteils
+const SeitenteilrechtsbreiteControl = gui.add(options, 'Seitenteilrechtsbreite', 20, 110).onChange((value) => {
+  updateSeitenteilrechts();
+});
+// Direkt nach dem Erstellen verstecken:
+SeitenteilrechtsbreiteControl.domElement.parentElement.style.display = 'none';
 
-// Funktion zum Hinzufügen des Sliders
-function addSeitenteilrechtsbreiteControl() {
-  SeitenteilrechtsbreiteControl = gui
-    .add(options, 'Seitenteilrechtsbreite', 20, 110)
-    .name('Seitenteil links Breite')
-    .onChange(() => {
-      updateSeitenteilrechts(); 
-    });
-}
-
-// Funktion zum Entfernen des Sliders
-function removeSeitenteilrechtsbreiteControl() {
-  if (SeitenteilrechtsbreiteControl) {
-    gui.remove(SeitenteilrechtsbreiteControl);
-    SeitenteilrechtsbreiteControl = null;
+// Breiten-Slider zeigen/verstecken
+function toggleSeitenteilrechtsbreite(value) {
+  if (value === 'ja') {
+    SeitenteilrechtsbreiteControl.domElement.parentElement.style.display = '';
+  } else {
+    SeitenteilrechtsbreiteControl.domElement.parentElement.style.display = 'none';
   }
 }
-
-// Funktion zum Umschalten je nach Auswahl
-function toggleSeitenteilrechtsbreiteControl(value) {
-  if (value === 'ja' && !SeitenteilrechtsbreiteControl) {
-    addSeitenteilrechtsbreiteControl();
-  } else if (value !== 'ja') {
-    removeSeitenteilrechtsbreiteControl();
-  }
-}
-
         
 // Add Zarge Type (initially hidden)
 let zargeControl;

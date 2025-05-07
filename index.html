@@ -120,8 +120,8 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   group.add(innerRight);
 
   // Glasfläche innerhalb des inneren Rahmens
-  const glassWidth = outerWidth - 2 * mainFrameThickness;
-  const glassHeight = outerHeight - 2 * mainFrameThickness;
+  const glassWidth = mainFrameWidth - 2 * mainFrameThickness;
+  const glassHeight = mainFrameHeight - 2 * mainFrameThickness;
   const glassDepth = 0.7;
   const glassMesh = new THREE.Mesh(new THREE.BoxGeometry(glassWidth, glassHeight, glassDepth), glassMaterial);
   group.add(glassMesh);

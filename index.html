@@ -111,17 +111,17 @@ function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMate
   innerBottom.position.set(0, -innerHeight / 2 - 0.05, 0);
   group.add(innerBottom);
 
-  const innerLeft = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight - 2 * innerFrameThickness, frameDepth), sprosseMaterial);
+  const innerLeft = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight, frameDepth), sprosseMaterial);
   innerLeft.position.set(-innerWidth / 2 - 0.05, 0, 0);
   group.add(innerLeft);
 
-  const innerRight = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight - 2 * innerFrameThickness, frameDepth), sprosseMaterial);
+  const innerRight = new THREE.Mesh(new THREE.BoxGeometry(innerFrameThickness, innerHeight, frameDepth), sprosseMaterial);
   innerRight.position.set(innerWidth / 2 + 0.05, 0, 0);
   group.add(innerRight);
 
   // Glasfläche innerhalb des inneren Rahmens
-  const glassWidth = innerFrameWidth;
-  const glassHeight = innerFrameHeight;
+  const glassWidth = innerWidth;
+  const glassHeight = innerHeight;
   const glassDepth = 0.7;
   const glassMesh = new THREE.Mesh(new THREE.BoxGeometry(glassWidth, glassHeight, glassDepth), glassMaterial);
   group.add(glassMesh);

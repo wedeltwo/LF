@@ -40,54 +40,19 @@ controls.enableDamping = true;
 // Umrechnungsfaktor von Metern zu Zentimetern
 const cm = 100;
 
-// Boden erstellen
-const floorGeometry = new THREE.PlaneGeometry(2000, 2000); // 20m x 20m in cm
-const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Hellbraune Farbe für den Boden
-const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-floor.rotation.x = -Math.PI / 2;
-floor.position.y = 0; // Position des Bodens
-scene.add(floor);
-
-// Wand mit Ausschnitt erstellen
-const wallWidth = 2000; // 20m in cm
-const wallHeight = 1000; // 10m in cm
-const wallThickness = 30; // 30cm
 
 // Licht hinzufügen
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+const ambientLight = new THREE.AmbientLight(0xffffff, 2);
 scene.add(ambientLight);
-const pointLight = new THREE.PointLight(0xffffff, 1);
-pointLight.position.set(1000, 1000, 1000); // 10m x 10m x 10m in cm
+const pointLight = new THREE.PointLight(0xffffff, 5);
+pointLight.position.set(150, 100, 100); // 10m x 10m x 10m in cm
 scene.add(pointLight);
 
-// Funktion zum Aktualisieren der Wand mit einem Ausschnitt
-function updateWallWithDoorway(options) {
-  if (scene.getObjectByName('wall')) {
-    scene.remove(scene.getObjectByName('wall'));
-  }
+ // Beleuchtung
+        const light = new THREE.DirectionalLight(0xffffff, 5);
+        light.position.set(-150, 100, 100);
+        scene.add(light);
 
-  const wallShape = new THREE.Shape();
-  wallShape.moveTo(-wallWidth / 2, 0);
-  wallShape.lineTo(wallWidth / 2, 0);
-  wallShape.lineTo(wallWidth / 2, wallHeight);
-  wallShape.lineTo(-wallWidth / 2, wallHeight);
-  wallShape.lineTo(-wallWidth / 2, 0);
-
-  const doorwayShape = new THREE.Path();
-  doorwayShape.moveTo(-options.doorwayWidth / 2, 0);
-  doorwayShape.lineTo(options.doorwayWidth / 2, 0);
-  doorwayShape.lineTo(options.doorwayWidth / 2, options.doorwayHeight);
-  doorwayShape.lineTo(-options.doorwayWidth / 2, options.doorwayHeight);
-  doorwayShape.lineTo(-options.doorwayWidth / 2, 0);
-  wallShape.holes.push(doorwayShape);
-
-  const wallGeometry = new THREE.ExtrudeGeometry(wallShape, { depth: wallThickness, bevelEnabled: false });
-  const wallMaterial = new THREE.MeshStandardMaterial({ color: options.wallColor });
-  const wall = new THREE.Mesh(wallGeometry, wallMaterial);
-  wall.position.z = -wallThickness / 2;
-  wall.name = 'wall';
-  scene.add(wall);
-}
 
 // Funktion zum Erstellen eines LOFT French Elements
 function createLoftFrenchElement(width, height, depth, position, material) {
@@ -107,23 +72,90 @@ function removeCurrentElement() {
     currentElement = null;
   }
 }
-// Drehtür
+
+function createDoorWithGlassAndFrame(group, width, height, rows, cols, glassMaterial, sprosseMaterial) {
+  // Rahmen
+  const frameThickness = 3.5; // Rahmenbreite
+  const frameDepth = 4; // Rahmentiefe
+
+  // Rahmen oben
+  const topFrameGeometry = new THREE.BoxGeometry(width, frameThickness, frameDepth);
+  const topFrameMesh = new THREE.Mesh(topFrameGeometry, sprosseMaterial);
+  topFrameMesh.position.set(0, height / 2 - frameThickness / 2, 0);
+  group.add(topFrameMesh);
+
+  // Rahmen unten
+  const bottomFrameGeometry = new THREE.BoxGeometry(width, frameThickness, frameDepth);
+  const bottomFrameMesh = new THREE.Mesh(bottomFrameGeometry, sprosseMaterial);
+  bottomFrameMesh.position.set(0, -height / 2 + frameThickness / 2, 0);
+  group.add(bottomFrameMesh);
+
+  // Rahmen links
+  const leftFrameGeometry = new THREE.BoxGeometry(frameThickness, height - 2 * frameThickness, frameDepth);
+  const leftFrameMesh = new THREE.Mesh(leftFrameGeometry, sprosseMaterial);
+  leftFrameMesh.position.set(-width / 2 + frameThickness / 2, 0, 0);
+  group.add(leftFrameMesh);
+
+  // Rahmen rechts
+  const rightFrameGeometry = new THREE.BoxGeometry(frameThickness, height - 2 * frameThickness, frameDepth);
+  const rightFrameMesh = new THREE.Mesh(rightFrameGeometry, sprosseMaterial);
+  rightFrameMesh.position.set(width / 2 - frameThickness / 2, 0, 0);
+  group.add(rightFrameMesh);
+
+  // Glas
+  const glassWidth = width - 2 * frameThickness;
+  const glassHeight = height - 2 * frameThickness;
+  const glassDepth = 0.7;
+  const glassGeometry = new THREE.BoxGeometry(glassWidth, glassHeight, glassDepth);
+  const glassMesh = new THREE.Mesh(glassGeometry, glassMaterial);
+  group.add(glassMesh);
+
+  // Sprossen
+  const sprossenWidth = 1.5; // Dicke der Sprossen
+  const sprossenDepth = 4;  
+  for (let i = 1; i < rows; i++) {
+    const y = -height / 2 + (i * height) / rows;
+    const horizontalSprosse = new THREE.Mesh(
+      new THREE.BoxGeometry(glassWidth, sprossenWidth, sprossenDepth),
+      sprosseMaterial
+    );
+    horizontalSprosse.position.set(0, y, 0);
+    group.add(horizontalSprosse);
+  }
+
+  for (let j = 1; j < cols; j++) {
+    const x = -width / 2 + (j * width) / cols;
+    const verticalSprosse = new THREE.Mesh(
+      new THREE.BoxGeometry(sprossenWidth, glassHeight, sprossenDepth),
+      sprosseMaterial
+    );
+    verticalSprosse.position.set(x, 0, 0);
+    group.add(verticalSprosse);
+  }
+}
+
+// Drehtür mit Option für Doppeldrehtür
 function addSwingDoor(options) {
   removeCurrentElement();
 
-  // Determine Zarge thickness based on selected type
   const zargeThickness = options.zargeType === 'standard' ? 5 : 2; // 5 cm for standard, 2 cm for slim
-  const zargeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+  const zargeMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.7,   // Metallischer Effekt
+  roughness: 0.05,   // Wenig rau, damit es leicht reflektiert
+});
+  const sprossenRows = options.sprossenRows;
+  const sprossenCols = options.sprossenCols;
 
   // Calculate Zarge dimensions
-  const zargeWidth = options.doorwayWidth - zargeThickness * 2; // Width reduced on both sides
-  const zargeHeight = options.doorwayHeight - zargeThickness; // Height reduced at the top
+  const zargeWidth = options.Elementbreite - zargeThickness * 2; // Width reduced on both sides
+  const zargeHeight = options.Elementhöhe - zargeThickness; // Height reduced at the top
   const zargeDepth = 5; // Zarge depth is always 5 cm
 
   // Create top Zarge
   const topZarge = createLoftFrenchElement(zargeWidth, zargeThickness, zargeDepth, {
     x: 0,
-    y: options.doorwayHeight - zargeThickness / 2,
+    y: options.Elementhöhe - zargeThickness / 2,
     z: 0,
   }, zargeMaterial);
 
@@ -142,93 +174,385 @@ function addSwingDoor(options) {
   }, zargeMaterial);
 
   // Calculate Door dimensions
-  const doorWidth = zargeWidth - 0.4; // Reduced by 0.2 cm on both sides
+  const doorWidth = (zargeWidth - 0.4) / (options.isDoubleDoor ? 2 : 1); // Halbe Breite bei Doppeltür
   const doorHeight = zargeHeight - 1; // Reduced by 0.2 cm on top and 1 cm at bottom
-  const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+  const doorMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.7,   // Metallischer Effekt
+  roughness: 0.05,   // Wenig rau, damit es leicht reflektiert
+});
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.7,   // Metallischer Effekt
+  roughness: 0.05,   // Wenig rau, damit es leicht reflektiert
+});
 
-  // Create the Door
-  const door = createLoftFrenchElement(doorWidth, doorHeight, 4, {
-    x: 0,
-    y: doorHeight / 2 + 1,
-    z: 0,
-  }, doorMaterial);
+  // Create doors
+  const doorGroup = new THREE.Group();
+
+  if (options.isDoubleDoor) {
+    // Linke Türhälfte
+    const doorLeft = new THREE.Group();
+    createDoorWithGlassAndFrame(doorLeft, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
+    doorLeft.position.set(-doorWidth / 2 - 0.1, doorHeight / 2 + 1, 0);
+    doorGroup.add(doorLeft);
+
+    // Rechte Türhälfte
+    const doorRight = new THREE.Group();
+    createDoorWithGlassAndFrame(doorRight, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
+    doorRight.position.set(doorWidth / 2 + 0.1, doorHeight / 2 + 1, 0);
+    doorGroup.add(doorRight);
+  } else {
+    // Einflügelige Tür in die Mitte setzen
+    const doorSingle = new THREE.Group();
+    createDoorWithGlassAndFrame(doorSingle, doorWidth, doorHeight, sprossenRows, sprossenCols, glassMaterial, sprosseMaterial);
+    doorSingle.position.set(0, doorHeight / 2 + 1, 0); // Mittig setzen
+    doorGroup.add(doorSingle);
+  }
 
   // Group Zarge and Door
   currentElement = new THREE.Group();
-  currentElement.add(topZarge, leftZarge, rightZarge, door);
+  currentElement.add(topZarge, leftZarge, rightZarge, doorGroup);
   scene.add(currentElement);
 }
         
-// Funktion zum Hinzufügen einer Schiebetür
+// Schiebetür mit Option für Doppelschiebetür und oberer Blende
 function addSlidingDoor(options) {
   removeCurrentElement();
 
-  const doorWidth = options.doorwayWidth + 20; // 2cm größer in der Breite
-  const doorHeight = options.doorwayHeight + 10; // 1cm größer in der Höhe
-  const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x666666 });
+  const doorWidth = (options.Elementbreite + 2) / (options.doorType === 'double' ? 2 : 1); // Halbe Breite bei Doppelschiebetür
+  const doorHeight = options.Elementhöhe - 1; // 1 cm größer in der Höhe
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.7,   // Metallischer Effekt
+  roughness: 0.05,   // Wenig rau, damit es leicht reflektiert
+});
+  const doorMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.7,   // Metallischer Effekt
+  roughness: 0.05,   // Wenig rau, damit es leicht reflektiert
+});
 
-  const slidingDoor = createLoftFrenchElement(doorWidth, doorHeight, 4, {
+  const slidingDoorGroup = new THREE.Group();
+
+  if (options.doorType === 'double') {
+    // Linke Türhälfte
+    const leftDoor = new THREE.Group();
+    createDoorWithGlassAndFrame(leftDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+    leftDoor.position.set(-doorWidth / 2, doorHeight / 2 + 1, 2); // Verschiebung nach links
+    slidingDoorGroup.add(leftDoor);
+
+    // Rechte Türhälfte
+    const rightDoor = new THREE.Group();
+    createDoorWithGlassAndFrame(rightDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+    rightDoor.position.set(doorWidth / 2, doorHeight / 2 + 1, 2); // Verschiebung nach rechts
+    slidingDoorGroup.add(rightDoor);
+  } else {
+    // Einflügelige Schiebetür mittig
+    const singleDoor = new THREE.Group();
+    createDoorWithGlassAndFrame(singleDoor, doorWidth, doorHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+    singleDoor.position.set(0, doorHeight / 2, 2); // Mittig vor der Wand
+    slidingDoorGroup.add(singleDoor);
+  }
+
+  // Obere Blende (Bündig mit Wand, doppelte Breite)
+  const coverWidth = (options.Elementbreite + options.Seitenteillinksbreite + options.Seitenteilrechtsbreite); // Doppelte Breite der Tür
+  const coverHeight = 8; // Höhe der Blende 8 cm
+  const coverDepth = 9; // Tiefe der Blende 9 cm
+
+  const cover = createLoftFrenchElement(coverWidth, coverHeight, coverDepth, {
     x: 0,
-    y: doorHeight / 2,
-    z: wallThickness / 2 + 3 // Vor der Wand
+    y: options.Elementhöhe + 5, // Position bündig über der Tür
+    z: 0, // Bündig mit der Wand
   }, doorMaterial);
 
-  currentElement = slidingDoor;
+  slidingDoorGroup.add(cover); // Blende zur Türgruppe hinzufügen
+
+  currentElement = slidingDoorGroup;
   scene.add(currentElement);
 }
 
-// Funktion zum Hinzufügen einer Trennwand
-function addPartition(options) {
+// Trennwand
+function addTrennwand(options) {
   removeCurrentElement();
 
-  const partitionWidth = options.doorwayWidth;
-  const partitionHeight = options.doorwayHeight;
-  const partitionMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+  const TrennwandWidth = options.Elementbreite;
+  const TrennwandHeight = options.Elementhöhe;
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ 
+  color: options.elementColor,
+  metalness: 0.7,   // Metallischer Effekt
+  roughness: 0.05,   // Wenig rau, damit es leicht reflektiert
+});
 
-  const partition = createLoftFrenchElement(partitionWidth, partitionHeight, 4, {
-    x: 0,
-    y: partitionHeight / 2,
-    z: 0 
-  }, partitionMaterial);
+  const Trennwand = new THREE.Group();
+  createDoorWithGlassAndFrame(Trennwand, TrennwandWidth, TrennwandHeight, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+  Trennwand.position.set(0, TrennwandHeight / 2, 0);
 
-  currentElement = partition;
+  currentElement = Trennwand;
   scene.add(currentElement);
 }
 
+// Seitenteillinks
+function addSeitenteillinks(options) {
+  const width = options.Seitenteillinksbreite;
+  const height = options.Elementhöhe;
+  const xOffset = options.Elementbreite / 2 + width / 2;
+
+  // Entferne vorheriges Seitenteil, falls vorhanden
+  const old = scene.getObjectByName('Seitenteillinks');
+  if (old) scene.remove(old);
+
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ 
+    color: options.elementColor,
+    metalness: 0.7,
+    roughness: 0.05,
+  });
+
+  const Seitenteillinks = new THREE.Group();
+  Seitenteillinks.name = 'Seitenteillinks';
+
+  createDoorWithGlassAndFrame(Seitenteillinks, width, height, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+
+  Seitenteillinks.position.set(xOffset, height / 2, 0);
+
+  scene.add(Seitenteillinks);
+}
+
+        let seitenteillinksMesh = null;
+
+function updateSeitenteillinks() {
+  // Vorherige entfernen, wenn vorhanden
+  if (seitenteillinksMesh) {
+    scene.remove(seitenteillinksMesh);
+  }
+
+  if (options.Seitenteillinks === 'ja') {
+    // Neues Seitenteil erzeugen
+    const width = options.Seitenteillinksbreite;
+    const height = options.Elementhöhe;
+
+    const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+    const sprosseMaterial = new THREE.MeshStandardMaterial({ 
+      color: options.elementColor,
+      metalness: 0.7,
+      roughness: 0.05,
+    });
+
+    const seitenteillinks = new THREE.Group();
+    createDoorWithGlassAndFrame(seitenteillinks, width, height, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+    
+    // Position links vom Hauptelement
+    seitenteillinks.position.set(-options.Elementbreite / 2 - width / 2, height / 2, 0);
+
+    scene.add(seitenteillinks);
+    seitenteillinksMesh = seitenteillinks;
+  }
+}
+
+// Seitenteilrechts
+function addSeitenteilrechts(options) {
+  const width = options.Seitenteilrechtsbreite;
+  const height = options.Elementhöhe;
+  const xOffset = options.Elementbreite / 2 + width / 2;
+
+  // Entferne vorheriges Seitenteil, falls vorhanden
+  const old = scene.getObjectByName('Seitenteilrechts');
+  if (old) scene.remove(old);
+
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+  const sprosseMaterial = new THREE.MeshStandardMaterial({ 
+    color: options.elementColor,
+    metalness: 0.7,
+    roughness: 0.05,
+  });
+
+  const Seitenteilrechts = new THREE.Group();
+  Seitenteilrechts.name = 'Seitenteilrechts';
+
+  createDoorWithGlassAndFrame(Seitenteilrechts, width, height, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+
+  Seitenteilrechts.position.set(xOffset * -1, height / 2, 0);
+
+  scene.add(Seitenteilrechts);
+}
+
+        let SeitenteilrechtsMesh = null;
+
+function updateSeitenteilrechts() {
+  // Vorherige entfernen, wenn vorhanden
+  if (SeitenteilrechtsMesh) {
+    scene.remove(SeitenteilrechtsMesh);
+  }
+
+  if (options.Seitenteilrechts === 'ja') {
+    // Neues Seitenteil erzeugen
+    const width = options.Seitenteilrechtsbreite;
+    const height = options.Elementhöhe;
+
+    const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x87CEEB, opacity: 0.5, transparent: true });
+    const sprosseMaterial = new THREE.MeshStandardMaterial({ 
+      color: options.elementColor,
+      metalness: 0.7,
+      roughness: 0.05,
+    });
+
+    const Seitenteilrechts = new THREE.Group();
+    createDoorWithGlassAndFrame(Seitenteilrechts, width, height, options.sprossenRows, options.sprossenCols, glassMaterial, sprosseMaterial);
+    
+    // Position rechts vom Hauptelement
+    Seitenteilrechts.position.set(options.Elementbreite / 2 + width / 2, height / 2, 0);
+
+    scene.add(Seitenteilrechts);
+    SeitenteilrechtsMesh = Seitenteilrechts;
+  }
+}
+        
 // GUI-Konfiguration
 const gui = new GUI();
 const options = {
-  doorwayWidth: 100, // Initialwert in cm
-  doorwayHeight: 210, // Initialwert in cm
-  wallColor: '#ffffff',
-  elementType: 'none', // Typ des Elements
-  zargeType: 'standard', // Zarge Typ
+  elementColor: '#187b91',
+  Elementbreite: 100,
+  Elementhöhe: 210,
+  elementType: 'none',
+  zargeType: 'standard',
+  sprossenRows: 2,
+  sprossenCols: 2,
+  doorType: 'single', // Neue Option: 'single' oder 'double'
+  Seitenteillinks: 'nein',
+  Seitenteillinksbreite: 20,
+  Seitenteilrechts: 'nein',
+  Seitenteilrechtsbreite: 20,
 };
 
 // Add controls
-const doorwayWidthControl = gui.add(options, 'doorwayWidth', 50, 300).onChange((value) => {
-  options.doorwayWidth = value;
-  updateWallWithDoorway(options);
+const ElementbreiteControl = gui.add(options, 'Elementbreite', 50, 300).onChange((value) => {
+  if (options.isDoubleDoor) {
+    // Begrenzung für doppelte Elemente (min: 100 cm, max: 300 cm)
+    if (value < 100) {
+      options.Elementbreite = 100;
+      ElementbreiteControl.setValue(100);
+    } else if (value > 300) {
+      options.Elementbreite = 300;
+      ElementbreiteControl.setValue(300);
+    } else {
+      options.Elementbreite = value;
+    }
+  } else {
+    // Begrenzung für einzelne Elemente (max: 150 cm)
+    if (value > 150) {
+      options.Elementbreite = 150;
+      ElementbreiteControl.setValue(150);
+    } else {
+      options.Elementbreite = value;
+    }
+  }
   updateElement();
+  updateSeitenteillinks();
+  updateSeitenteilrechts();
 });
 
-const doorwayHeightControl = gui.add(options, 'doorwayHeight', 190, 300).onChange((value) => {
-  options.doorwayHeight = value;
-  updateWallWithDoorway(options);
+const ElementhöheControl = gui.add(options, 'Elementhöhe', 50, 300).onChange((value) => {
+  if (options.elementType === 'Trennwand') {
+    // Mindesthöhe für Trennwand: 50 cm
+    if (value < 50) {
+      options.Elementhöhe = 50;
+      ElementhöheControl.setValue(50);
+    } else {
+      options.Elementhöhe = value;
+    }
+  } else if (options.elementType === 'Drehtür' || options.elementType === 'Schiebetür') {
+    // Mindesthöhe für Türen: 190 cm
+    if (value < 190) {
+      options.Elementhöhe = 190;
+      ElementhöheControl.setValue(190);
+    } else {
+      options.Elementhöhe = value;
+    }
+  } else {
+    options.Elementhöhe = value;
+  }
+
   updateElement();
+  updateSeitenteillinks();
+  updateSeitenteilrechts();
 });
 
-const wallColorControl = gui.addColor(options, 'wallColor').onChange((value) => {
-  options.wallColor = value;
-  updateWallWithDoorway(options);
+const elementColorControl = gui.addColor(options, 'elementColor').onChange((value) => {
+  options.Color = value;
+  updateElement();
+  updateSeitenteillinks();
+  updateSeitenteilrechts();
 });
 
-const elementTypeControl = gui.add(options, 'elementType', ['none', 'swing door', 'sliding door', 'partition']).onChange((value) => {
+const sprossenRowsControl = gui.add(options, 'sprossenRows', 0, 5, 1).onChange(() => {
+  updateElement();
+  updateSeitenteillinks();
+  updateSeitenteilrechts();
+});
+
+const sprossenColsControl = gui.add(options, 'sprossenCols', 0, 5, 1).onChange(() => {
+  updateElement();
+  updateSeitenteillinks();
+  updateSeitenteilrechts();
+});
+
+const elementTypeControl = gui.add(options, 'elementType', ['none', 'Drehtür', 'Schiebetür', 'Trennwand']).onChange((value) => {
   options.elementType = value;
   updateElement();
   toggleZargeControl(value);
+  toggleDoorTypeControl(value);
 });
 
+// GUI-Option: Seitenteillinks (ja/nein)
+const SeitenteillinksControl = gui.add(options, 'Seitenteillinks', ['nein', 'ja']).onChange((value) => {
+  options.Seitenteillinks = value;
+  updateSeitenteillinks();
+  toggleSeitenteillinksbreite(value);
+});
+
+// GUI-Option: Breite des linken Seitenteils
+const SeitenteillinksbreiteControl = gui.add(options, 'Seitenteillinksbreite', 20, 110).onChange((value) => {
+  updateSeitenteillinks();
+});
+// Direkt nach dem Erstellen verstecken:
+SeitenteillinksbreiteControl.domElement.parentElement.style.display = 'none';
+
+// Breiten-Slider zeigen/verstecken
+function toggleSeitenteillinksbreite(value) {
+  if (value === 'ja') {
+    SeitenteillinksbreiteControl.domElement.parentElement.style.display = '';
+  } else {
+    SeitenteillinksbreiteControl.domElement.parentElement.style.display = 'none';
+  }
+}
+
+// GUI-Option: Seitenteilrechts (ja/nein)
+const SeitenteilrechtsControl = gui.add(options, 'Seitenteilrechts', ['nein', 'ja']).onChange((value) => {
+  options.Seitenteilrechts = value;
+  updateSeitenteilrechts();
+  toggleSeitenteilrechtsbreite(value);
+});
+
+// GUI-Option: Breite des linken Seitenteils
+const SeitenteilrechtsbreiteControl = gui.add(options, 'Seitenteilrechtsbreite', 20, 110).onChange((value) => {
+  updateSeitenteilrechts();
+});
+// Direkt nach dem Erstellen verstecken:
+SeitenteilrechtsbreiteControl.domElement.parentElement.style.display = 'none';
+
+// Breiten-Slider zeigen/verstecken
+function toggleSeitenteilrechtsbreite(value) {
+  if (value === 'ja') {
+    SeitenteilrechtsbreiteControl.domElement.parentElement.style.display = '';
+  } else {
+    SeitenteilrechtsbreiteControl.domElement.parentElement.style.display = 'none';
+  }
+}
+        
 // Add Zarge Type (initially hidden)
 let zargeControl;
 function addZargeControl() {
@@ -246,10 +570,41 @@ function removeZargeControl() {
 
 // Toggle Zarge control visibility based on elementType
 function toggleZargeControl(elementType) {
-  if (elementType === 'swing door' && !zargeControl) {
+  if (elementType === 'Drehtür' && !zargeControl) {
     addZargeControl();
-  } else if (elementType !== 'swing door') {
+  } else if (elementType !== 'Drehtür') {
     removeZargeControl();
+  }
+}
+
+// Add Door Type (single/double) control
+let doorTypeControl;
+function addDoorTypeControl() {
+  doorTypeControl = gui.add(options, 'doorType', ['single', 'double']).onChange(() => {
+    updateElement();
+  });
+}
+
+function removeDoorTypeControl() {
+  if (doorTypeControl) {
+    gui.remove(doorTypeControl);
+    doorTypeControl = null;
+  }
+}
+
+// Toggle Door Type control visibility based on elementType
+function toggleDoorTypeControl(elementType) {
+  if (elementType === 'Trennwand') {
+    // Türtyp auf 'single' setzen, weil Trennwand keine Doppelauswahl hat
+    options.doorType = 'single';
+    if (doorTypeControl) {
+      gui.remove(doorTypeControl);
+      doorTypeControl = null;
+    }
+  } else if ((elementType === 'Drehtür' || elementType === 'Schiebetür') && !doorTypeControl) {
+    addDoorTypeControl();
+  } else if (elementType !== 'Drehtür' && elementType !== 'Schiebetür') {
+    removeDoorTypeControl();
   }
 }
 
@@ -257,28 +612,41 @@ function toggleZargeControl(elementType) {
 function updateElement() {
   if (options.elementType === 'none') {
     removeCurrentElement();
-  } else if (options.elementType === 'swing door') {
-    addSwingDoor(options);
-  } else if (options.elementType === 'sliding door') {
-    addSlidingDoor(options);
-  } else if (options.elementType === 'partition') {
-    addPartition(options);
+  } else if (options.elementType === 'Drehtür' || options.elementType === 'Schiebetür') {
+    options.isDoubleDoor = options.doorType === 'double';
+
+    // Falls Doppel gewählt wird und die Breite unter 100 cm liegt, setzen wir sie auf 100 cm
+    if (options.isDoubleDoor && options.Elementbreite < 100) {
+      options.Elementbreite = 100;
+      ElementbreiteControl.setValue(100);
+    }
+    if (options.doorType == 'single' && options.Elementbreite > 150) {
+      options.Elementbreite = 150;
+      ElementbreiteControl.setValue(150);
+    }
+
+    if (options.elementType === 'Drehtür') {
+      addSwingDoor(options);
+    } else if (options.elementType === 'Schiebetür') {
+      addSlidingDoor(options);
+    }
+  } else if (options.elementType === 'Trennwand') {
+      addTrennwand(options);
   }
 }
 
 // Initialize the wall with doorway and the GUI
-updateWallWithDoorway(options);
 toggleZargeControl(options.elementType);
+toggleDoorTypeControl(options.elementType);
 
 // Animation-Schleife
 function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
 }
 
 animate();
-
         
     </script>
 </body>

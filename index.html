@@ -287,17 +287,25 @@ function addSlidingDoor(options) {
     slidingDoorGroup.add(singleDoor);
   }
 
-  // Obere Blende (Bündig mit Wand, doppelte Breite)
-  const coverWidth = (options.Elementbreite + options.Seitenteillinksbreite + options.Seitenteilrechtsbreite); // Doppelte Breite der Tür
-  const coverHeight = 8; // Höhe der Blende 8 cm
-  const coverDepth = 9; // Tiefe der Blende 9 cm
+  // Globale Variable, damit updateCover() darauf zugreifen kann
+let cover = null;
 
-  const cover = createLoftFrenchElement(coverWidth, coverHeight, coverDepth, {
+// Beim Initialisieren (z. B. in deiner Hauptfunktion):
+function createInitialCover() {
+  const coverWidth = options.Elementbreite + options.Seitenteillinksbreite + options.Seitenteilrechtsbreite;
+  const coverHeight = 8;
+  const coverDepth = 9;
+
+  cover = createLoftFrenchElement(coverWidth, coverHeight, coverDepth, {
     x: 0,
-    y: options.Elementhöhe + 4, // Position bündig über der Tür
-    z: 2.5, // Bündig mit der Wand
+    y: options.Elementhöhe + 4,
+    z: 2.5,
   }, doorMaterial);
 
+  slidingDoorGroup.add(cover);
+}
+
+// Wenn sich Optionen ändern:
 function updateCover() {
   if (cover) {
     slidingDoorGroup.remove(cover);
@@ -314,10 +322,8 @@ function updateCover() {
   }, doorMaterial);
 
   slidingDoorGroup.add(cover);
-  
-  currentElement = slidingDoorGroup;
-  scene.add(currentElement);
 }
+  
 
 // Trennwand
 function addTrennwand(options) {

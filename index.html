@@ -548,15 +548,19 @@ const SeitenteillinksControl = gui.add(options, 'Seitenteillinks', ['nein', 'ja'
 const SeitenteillinksbreiteControl = gui.add(options, 'Seitenteillinksbreite', 20, 110).onChange((value) => {
   updateSeitenteillinks();
 });
-// Direkt nach dem Erstellen verstecken:
-SeitenteillinksbreiteControl.domElement.parentElement.style.display = 'none';
+let seitenteillinksbreiteExists = false;
 
-// Breiten-Slider zeigen/verstecken
 function toggleSeitenteillinksbreite(value) {
   if (value === 'ja') {
-    SeitenteillinksbreiteControl.domElement.parentElement.style.display = '';
+    if (!seitenteillinksbreiteExists) {
+      SeitenteillinksbreiteControl = gui.add(params, 'Seitenteillinksbreite', 0, 100); // Beispielwert
+      seitenteillinksbreiteExists = true;
+    }
   } else {
-    SeitenteillinksbreiteControl.domElement.parentElement.style.display = 'none';
+    if (seitenteillinksbreiteExists) {
+      gui.remove(SeitenteillinksbreiteControl);
+      seitenteillinksbreiteExists = false;
+    }
   }
 }
 

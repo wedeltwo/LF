@@ -541,7 +541,7 @@ const elementTypeControl = gui.add(options, 'elementType', ['none', 'Drehtür', 
 const SeitenteillinksControl = gui.add(options, 'Seitenteillinks', ['nein', 'ja']).onChange((value) => {
   options.Seitenteillinks = value;
   updateSeitenteillinks();
-  toggleSeitenteillinksbreite(value);
+  toggleSeitenteillinksbreiteControl(value);
 });
 
 // GUI-Option: Breite des linken Seitenteils

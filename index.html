@@ -544,23 +544,33 @@ const SeitenteillinksControl = gui.add(options, 'Seitenteillinks', ['nein', 'ja'
   toggleSeitenteillinksbreite(value);
 });
 
-// GUI-Option: Breite des linken Seitenteils
-const SeitenteillinksbreiteControl = gui.add(options, 'Seitenteillinksbreite', 20, 110).onChange((value) => {
-  updateSeitenteillinks();
-});
-let seitenteillinksbreiteExists = false;
+// Referenz zum Controller (anfangs null)
+let seitenteillinksbreiteControl = null;
 
-function toggleSeitenteillinksbreite(value) {
-  if (value === 'ja') {
-    if (!seitenteillinksbreiteExists) {
-      SeitenteillinksbreiteControl = gui.add(params, 'Seitenteillinksbreite', 0, 100); // Beispielwert
-      seitenteillinksbreiteExists = true;
-    }
-  } else {
-    if (seitenteillinksbreiteExists) {
-      gui.remove(SeitenteillinksbreiteControl);
-      seitenteillinksbreiteExists = false;
-    }
+// Funktion zum Hinzufügen des Sliders
+function addSeitenteillinksbreiteControl() {
+  seitenteillinksbreiteControl = gui
+    .add(options, 'Seitenteillinksbreite', 20, 110)
+    .name('Seitenteil links Breite')
+    .onChange(() => {
+      updateSeitenteillinks(); // oder was immer du beim Ändern tun willst
+    });
+}
+
+// Funktion zum Entfernen des Sliders
+function removeSeitenteillinksbreiteControl() {
+  if (seitenteillinksbreiteControl) {
+    gui.remove(seitenteillinksbreiteControl);
+    seitenteillinksbreiteControl = null;
+  }
+}
+
+// Funktion zum Umschalten je nach Auswahl
+function toggleSeitenteillinksbreiteControl(value) {
+  if (value === 'ja' && !seitenteillinksbreiteControl) {
+    addSeitenteillinksbreiteControl();
+  } else if (value !== 'ja') {
+    removeSeitenteillinksbreiteControl();
   }
 }
 
